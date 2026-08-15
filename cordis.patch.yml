@@ -1,0 +1,4 @@
+﻿# dsh-token-cost-meter bundle patch: mounts the token-cost-meter row (host + browser halves).
+- insert:
+    - id: token-cost-meter
+      name: dsh-token-cost-meter

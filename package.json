@@ -1,24 +1,48 @@
 ﻿{
   "name": "dsh-token-cost-meter",
-  "version": "0.1.0",
-  "private": true,
-  "description": "DeepSeek Harness (DSH) 动态插件：显示当前会话累计 token 消耗与估算费用，价格从 DeepSeek 官方价格页动态获取。",
+  "version": "0.2.0",
+  "description": "DeepSeek Harness (dsh) 会话费用插件：显示当前会话累计 token 消耗与估算费用，价格从 DeepSeek 官方价格页动态获取。",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "lib/client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "keywords": [
     "deepseek-harness",
     "dsh",
+    "dsh-plugin",
     "cordis",
     "plugin",
     "token",
     "pricing",
     "cost"
   ],
-  "files": [
-    "host.js",
-    "client.js",
-    "README.md",
-    "LICENSE",
-    "SECURITY.md",
-    "CHANGELOG.md"
-  ]
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  }
 }
