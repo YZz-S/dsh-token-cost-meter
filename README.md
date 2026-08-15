@@ -1,10 +1,10 @@
 ﻿# dsh-token-cost-meter
 
-DeepSeek Harness（DSH）动态 Cordis 插件：在 Web GUI 输入框下方的统计行中实时显示**当前会话累计 token 消耗**与**估算费用（人民币）**，价格从 DeepSeek 官方价格页动态获取。
+DeepSeek Harness（DSH）插件：在 Web GUI 输入框下方的统计行中实时显示**当前会话累计 token 消耗**与**估算费用（人民币）**，价格从 DeepSeek 官方价格页动态获取。
+
+支持两种形态：**可安装的 dsh.bundle 包**（推荐，随 DSH 启动常驻）与**动态 cordis_define 用法**（临时运行）。
 
 ## 效果
-
-![花费和余额显示效果图](./images/%E8%8A%B1%E8%B4%B9%E5%92%8C%E4%BD%99%E9%A2%9D%E6%98%BE%E7%A4%BA%E6%95%88%E6%9E%9C%E5%9B%BE.png)
 
 输入框下方（自带 stats 行右侧）新增一行读数：
 
@@ -26,13 +26,23 @@ DeepSeek Harness（DSH）动态 Cordis 插件：在 Web GUI 输入框下方的�
 
 | 文件 | 说明 |
 | --- | --- |
-| `host.js` | Host 半部分（`cordis_define` 的 `code.host`）：价格抓取、解析、RPC（`pricing` / `model`） |
-| `client.js` | Client 半部分（`code.client`）：输入框下方 UI、费用计算 |
-| `README.md` | 本说明 |
-| `SECURITY.md` | 安全说明与开源前检查摘要 |
-| `CHANGELOG.md` | 更新日志 |
-| `LICENSE` | MIT 许可协议 |
-| `package.json` | 包元信息（本插件不发布到 npm，`private: true`） |
+| `index.js` | 安装版 Host 半边：抓取/解析官方价格页，`/api/token-cost-meter/*` 路由（`pricing` / `model`） |
+| `lib/client.js` | 安装版 Client 半边：输入框下方 UI、费用计算 |
+| `cordis.patch.yml` | bundle 补丁：向 DSH 组合插入本插件行 |
+| `host.js` | 动态版 Host 半边（`cordis_define` 的 `code.host`），与安装版功能等价 |
+| `client.js` | 动态版 Client 半边（`code.client`） |
+| `README.md` / `SECURITY.md` / `CHANGELOG.md` / `LICENSE` | 文档与许可 |
+
+## 安装（dsh.bundle）
+
+本仓库同时是可安装的 dsh 插件包（`package.json` 声明 `dsh.bundle` + `dsh.client`）：
+
+```sh
+dsh plugin --profile web add github:YZz-S/dsh-token-cost-meter
+```
+
+安装后重启 DSH，输入框下方的费用读数自动生效。
+动态用法（`cordis_define` 加载 `host.js` / `client.js`）仍保留，两种方式二选一。
 
 ## 使用方法
 
@@ -46,9 +56,9 @@ DeepSeek Harness（DSH）动态 Cordis 插件：在 Web GUI 输入框下方的�
 
 > 动态插件的生命周期与当前 DSH 进程相同：重启 DSH 后需重新 define + run。
 
-### 方式二：做成正式插件（常驻）
+### 方式二：正式插件（常驻）
 
-将 Host / Client 逻辑封装为 npm 包并挂载到 profile（参见 DeepSeek Harness 插件开发文档）。`host.js` / `client.js` 均为可直接复用的函数体。
+即上方「安装（dsh.bundle）」一节，`dsh plugin add` 后随 DSH 启动自动加载。
 
 ## 工作原理
 
@@ -58,15 +68,15 @@ DeepSeek Harness（DSH）动态 Cordis 插件：在 Web GUI 输入框下方的�
 │  ┌───────────────────────────────────────────────────────────────────┐ │
 │  │ CostLine 组件                                                      │ │
 │  │  · useProjection('tokenUsage') ← 会话累计真实用量（实时更新）      │ │
-│  │  · host.call('pricing')        ← 官方价格（TTL 6h + 快照兜底）     │ │
-│  │  · host.call('model')          ← 会话模型（Host 侧来源）           │ │
+│  │  · GET /api/token-cost-meter/pricing ← 官方价格（TTL 6h + 快照兜底）│ │
+│  │  · GET /api/token-cost-meter/model   ← 会话模型（Host 侧来源）     │ │
 │  │  费用 = 未命中输入×未命中价 + 缓存命中×命中价 + 输出×输出价          │ │
 │  └───────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────┘
-                              │ host.call（JSON RPC）
+                              │ fetch（同源 HTTP）
 ┌───────────────────────── Host（DSH Node 进程） ─────────────────────────┐
-│ pricing: shell.run(node.exe 抓取官方价格页) → 正则解析两套价表           │
-│ model:   agents.get(sessionId).options.model                            │
+│ webServer 路由: pricing（原生 fetch 抓官方页 → 解析两套价表）            │
+│                model（agents.get(sessionId).options.model）             │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -81,13 +91,13 @@ DeepSeek Harness（DSH）动态 Cordis 插件：在 Web GUI 输入框下方的�
 
 ## 平台要求
 
-- DSH（Web 模式，支持动态 Cordis 插件的版本；已在 DSH 0.1.0-rc.6 + Node.js v22 + Windows 验证）
-- 价格抓取命令为 PowerShell 语法，Windows 开箱即用；Linux/macOS 需将 `host.js` 中 `NODE_FETCH` 替换为对应 shell 语法，例如 `node -e 'fetch("https://api-docs.deepseek.com/zh-cn/quick_start/pricing").then(r=>r.text()).then(t=>console.log(t))'`
-- Node.js：DSH 本身运行于 Node；抓取复用 PATH 中的 node，并内置 nvm-windows 与 Program Files 兜底路径（可按需修改）
+- DSH（Web 模式，支持动态 Cordis 插件；已在 DSH 0.1.0-rc.6 + Node.js v22 + Windows 验证）
+- 安装版无额外依赖：宿主进程自带 `fetch`（Node ≥ 18）
+- 动态版（`host.js`）的价格抓取命令为 PowerShell 语法，Windows 开箱即用；Linux/macOS 需替换 `host.js` 中 `NODE_FETCH` 为对应 shell 语法
 
-## 为什么用 node.exe 抓取价格页
+## 为什么动态版用 node.exe 抓取价格页
 
-DSH 动态插件沙盒禁用了 `fetch` / `require`，且 Web 部署默认不挂载 `ctx.web` 的 fetch provider（防 SSRF）；同时 Windows 沙盒执行器会破坏 curl / PowerShell 的 schannel TLS 凭据。因此本插件经 `ctx.shell` 调用 `node.exe`（OpenSSL TLS，不受 schannel 影响）抓取唯一的硬编码官方 URL。命令字符串无任何外部输入拼接，无命令注入面。
+DSH 动态插件沙盒禁用了 `fetch` / `require`，且 Web 部署默认不挂载 `ctx.web` 的 fetch provider（防 SSRF）；同时 Windows 沙盒执行器会破坏 curl / PowerShell 的 schannel TLS 凭据。因此动态版经 `ctx.shell` 调用 `node.exe`（OpenSSL TLS，不受 schannel 影响）抓取唯一的硬编码官方 URL，命令字符串无任何外部输入拼接，无命令注入面。安装版宿主进程自带原生 fetch，不受此限制。
 
 ## 已知限制
 
