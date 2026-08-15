@@ -1,0 +1,24 @@
+﻿{
+  "name": "dsh-token-cost-meter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DeepSeek Harness (DSH) 动态插件：显示当前会话累计 token 消耗与估算费用，价格从 DeepSeek 官方价格页动态获取。",
+  "license": "MIT",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "cordis",
+    "plugin",
+    "token",
+    "pricing",
+    "cost"
+  ],
+  "files": [
+    "host.js",
+    "client.js",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "CHANGELOG.md"
+  ]
+}
