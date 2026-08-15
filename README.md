@@ -1,4 +1,4 @@
-﻿# dsh-token-cost-meter
+# dsh-token-cost-meter
 
 DeepSeek Harness（DSH）插件：在 Web GUI 输入框下方的统计行中实时显示**当前会话累计 token 消耗**与**估算费用（人民币）**，价格从 DeepSeek 官方价格页动态获取。
 

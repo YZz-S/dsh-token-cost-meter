@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "dsh-token-cost-meter",
   "version": "0.2.0",
   "description": "DeepSeek Harness (dsh) 会话费用插件：显示当前会话累计 token 消耗与估算费用，价格从 DeepSeek 官方价格页动态获取。",

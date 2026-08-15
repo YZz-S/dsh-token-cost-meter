@@ -1,4 +1,4 @@
-﻿/**
+/**
  * dsh-token-cost-meter — Client 半部分（DSH 动态 Cordis 插件）
  *
  * 使用方法（方式一，动态插件）：

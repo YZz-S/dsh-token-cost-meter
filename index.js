@@ -1,4 +1,4 @@
-﻿/**
+/**
  * dsh-token-cost-meter — Host 半边（可安装的 dsh.bundle 插件）
  *
  * 职责：抓取并解析 DeepSeek 官方价格页（TTL 6 小时，含峰谷价表），
